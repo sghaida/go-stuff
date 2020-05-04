@@ -34,14 +34,12 @@ type EventType = int
 
 // holds the event types that is used internally
 const (
-	ServiceRequestSubmission EventType = iota
-	BidSubmission
+	RequireFeedback EventType = iota
+	NoFeedback
 )
 
 // Event which to be emitted into the queue
 type Event struct {
-	RequestID string
-	UserID    string
 	EventType EventType
 	Channel   chan EventReply
 	eventID   EventID
@@ -89,7 +87,7 @@ func (q *Queue) Emmit(e Event, f func() EventReply) EventID {
 	e.eventID = eventID
 	event := baseEvent{e, f, nil}
 	pushChan <- event
-	log.Infof("EventID: %v has been emitted", e.UserID)
+	log.Infof("EventID: %v has been emitted", e.eventID)
 	return eventID
 }
 
