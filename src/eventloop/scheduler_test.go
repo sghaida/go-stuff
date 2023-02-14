@@ -1,14 +1,15 @@
 package eventloop_test
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/sghaida/go-stuff/src/eventloop"
 )
 
 func Test_Scheduler(t *testing.T) {
@@ -28,15 +29,13 @@ func Test_Scheduler(t *testing.T) {
 				channels = append(channels, ch)
 				lock.Unlock()
 				event := eventloop.Event{
-					RequestID: uuid.New().String(),
-					UserID:    uuid.New().String(),
-					EventType: eventloop.ServiceRequestSubmission,
+					EventType: eventloop.RequireFeedback,
 					Channel:   ch,
 				}
 
 				el.Emmit(event, func() eventloop.EventReply {
 					return eventloop.EventReply{
-						Payload: event.UserID,
+						Payload: fmt.Sprintf("event - %d", index),
 						Error:   nil,
 					}
 				})
@@ -64,23 +63,24 @@ func Test_Scheduler(t *testing.T) {
 				channels = append(channels, ch)
 				lock.Unlock()
 				event := eventloop.Event{
-					RequestID: uuid.New().String(),
-					UserID:    uuid.New().String(),
-					EventType: eventloop.ServiceRequestSubmission,
+					// no feedback is not being checked for the time being
+					EventType: eventloop.NoFeedback,
 					Channel:   ch,
 				}
 
 				el.Emmit(event, func() eventloop.EventReply {
 					return eventloop.EventReply{
-						Payload: event.UserID,
-						Error:   nil,
+						Payload: struct {
+							Name string
+						}{fmt.Sprintf("name: %d", index)},
+						Error: nil,
 					}
 				})
 				go func(ev eventloop.Event) {
 					t := time.Duration(rand.Intn(100))
 					time.Sleep(t * time.Millisecond)
 					result := <-ev.Channel
-					log.Infof(result.Payload.(string))
+					log.Info(result.Payload.(struct{ Name string }))
 					wg.Done()
 				}(event)
 			}(i)
