@@ -24,7 +24,17 @@ func TestMain(m *testing.M) {
 		_ = resp.Body.Close()
 	}()
 	doc, _ := goquery.NewDocumentFromReader(resp.Body)
-	endpointPath = doc.Find(".notification.is-light").Text()
+	// define selector
+	matcher := goquery.Single(
+		"body > " +
+			"section.hero.is-dark.is-medium.is-bold > " +
+			"div > " +
+			"div > " +
+			"div.endpoint-url.notification.is-light.is-family-code.is-size-7-mobile",
+	)
+	// find the item and extract the text
+	endpointPath = doc.FindMatcher(matcher).Text()
+	// clean up the text
 	endpointPath = strings.TrimSpace(endpointPath)
 	endpointPath = strings.Replace(endpointPath, "https://crudcrud.com", "", -1)
 	endpointPath = fmt.Sprintf("%s/crudOps", endpointPath)
