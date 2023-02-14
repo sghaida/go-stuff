@@ -66,6 +66,7 @@ func (c *Caller) Call(
 	return c.CallWithContext(ctx, method, headers, query, reqBody)
 }
 
+// CallWithContext do request http call with context
 func (c *Caller) CallWithContext(
 	ctx context.Context, method HttpMethod, extraHeaders map[string]string, query map[string]string, reqBody []byte,
 ) (*http.Response, error) {
@@ -124,6 +125,7 @@ func (c *Caller) CallWithContext(
 	return resp, err
 }
 
+// RetryableCall do http call with retry logic.
 func (c *Caller) RetryableCall(
 	method HttpMethod, extraHeaders map[string]string, query map[string]string, reqBody []byte,
 ) (*http.Response, error) {

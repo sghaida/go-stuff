@@ -6,11 +6,13 @@ import (
 	"fmt"
 )
 
+// BasicAuth ...
 type BasicAuth struct {
 	username string
 	password string
 }
 
+// NewBasicAuth ...
 func NewBasicAuth(username string, password string) *BasicAuth {
 	return &BasicAuth{
 		username: username,
@@ -18,10 +20,12 @@ func NewBasicAuth(username string, password string) *BasicAuth {
 	}
 }
 
+// GetAuthType ...
 func (b *BasicAuth) GetAuthType() AuthType {
 	return AuthBasic
 }
 
+// GetAuthKey ...
 func (b *BasicAuth) GetAuthKey() (string, error) {
 	if b.username == "" || b.password == "" {
 		return "", errors.New("username and password can't be empty")

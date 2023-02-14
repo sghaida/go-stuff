@@ -7,8 +7,7 @@ const (
 	None AuthType = "none"
 	// AuthBasic using basic auth
 	AuthBasic AuthType = "basic"
-	// AuthSts  using DH sts auth
-	AuthSts AuthType = "sts"
+
 	// AuthJwt using jwt tokens
 	AuthJwt AuthType = "jwt"
 	// AuthApiKey using token based auth

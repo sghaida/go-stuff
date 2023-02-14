@@ -32,6 +32,7 @@ type ConfigBuilder struct {
 	defaultHeaders map[string]string
 }
 
+// Build builds HttpCaller Config
 func (c *ConfigBuilder) Build() (*Config, error) {
 	if c.host == "" {
 		return nil, errors.New("host can't be empty")
@@ -62,6 +63,7 @@ func NewConfig() *ConfigBuilder {
 	return &ConfigBuilder{}
 }
 
+// WithHost add url
 func (c *ConfigBuilder) WithHost(host string) *ConfigBuilder {
 	// remove trailing slashes and spaces/
 	host = strings.TrimSpace(host)
@@ -71,6 +73,7 @@ func (c *ConfigBuilder) WithHost(host string) *ConfigBuilder {
 	return c
 }
 
+// WithRoute add path
 func (c *ConfigBuilder) WithRoute(route string) *ConfigBuilder {
 	// remove trailing slashes and spaces/
 	route = strings.TrimSpace(route)
@@ -80,21 +83,25 @@ func (c *ConfigBuilder) WithRoute(route string) *ConfigBuilder {
 	return c
 }
 
+// WithTimeout add timeout
 func (c *ConfigBuilder) WithTimeout(timeout time.Duration) *ConfigBuilder {
 	c.timeout = timeout
 	return c
 }
 
+// WithRetry add retry count
 func (c *ConfigBuilder) WithRetry(numOfRetries int) *ConfigBuilder {
 	c.numOfRetries = numOfRetries
 	return c
 }
 
+// WithJsonSchema add json schema
 func (c *ConfigBuilder) WithJsonSchema(schema json.RawMessage) *ConfigBuilder {
 	c.jsonSchema = schema
 	return c
 }
 
+// WithHeaders add http headers
 func (c *ConfigBuilder) WithHeaders(headers map[string]string) *ConfigBuilder {
 	c.defaultHeaders = headers
 	return c
