@@ -12,7 +12,6 @@ type JwtAuth struct {
 
 // NewJWTAuth ...
 func NewJWTAuth(token string) *JwtAuth {
-	token = fmt.Sprintf("Bearer %s", token)
 	jwtToken := JwtAuth{token}
 	return &jwtToken
 }
@@ -24,8 +23,10 @@ func (jwt *JwtAuth) GetAuthType() AuthType {
 
 // GetAuthKey ...
 func (jwt *JwtAuth) GetAuthKey() (string, error) {
-	if jwt.token == "" {
+	token := jwt.token
+	if token == "" {
 		return "", errors.New("token can't be empty")
 	}
-	return jwt.token, nil
+	token = fmt.Sprintf("Bearer %s", jwt.token)
+	return token, nil
 }
