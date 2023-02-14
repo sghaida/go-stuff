@@ -8,6 +8,6 @@ refer to the [Test file ](./src/eventloop/scheduler_test.go) to see how it works
 ### retry 
 a simple retry logic with exponential backoff strategy
 
-# httpclient
+### httpclient
 a simple abstraction for http client which will handle HTTP/1.1 `request` | `response`  
  
