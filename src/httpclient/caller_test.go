@@ -3,24 +3,47 @@ package httpclient_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/sghaida/go-stuff/src/cauth"
 	"github.com/sghaida/go-stuff/src/httpclient"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"net/http"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
 
+var url = "https://crudcrud.com"
+var endpointPath string
+
+func TestMain(m *testing.M) {
+	resp, _ := http.Get(url)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+	doc, _ := goquery.NewDocumentFromReader(resp.Body)
+	endpointPath = doc.Find(".notification.is-light").Text()
+	endpointPath = strings.TrimSpace(endpointPath)
+	endpointPath = strings.Replace(endpointPath, "https://crudcrud.com", "", -1)
+	endpointPath = fmt.Sprintf("%s/crudOps", endpointPath)
+	endpointPath = strings.TrimPrefix(endpointPath, "/")
+
+	exitVal := m.Run()
+	os.Exit(exitVal)
+}
+
 func TestCaller_CallWithTimeout(t *testing.T) {
 
 	url := "https://crudcrud.com"
-	path := "api/3e3752d95d324cb1a64b77ffdf008a3f/crudOps"
+
 	token := "some_jwt_token"
 	headers := map[string]string{
 		"Accept":       `application/json`,
 		"Content-Type": `application/json`,
 	}
-	client := createClient(t, url, path, token, headers)
+	client := createClient(t, url, endpointPath, token, headers)
 	type reqPayload struct {
 		ID   string `json:"_id,omitempty"`
 		Name string `json:"name"`
@@ -47,7 +70,8 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 		if err != nil {
 			assert.Failf(t, "expected to get the body successfully, got %s", err.Error())
 		}
-		fmt.Println(string(body))
+		b := string(body)
+		fmt.Println(b)
 	})
 
 	t.Run("get data", func(t *testing.T) {
@@ -72,7 +96,7 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 
 	t.Run("put data", func(t *testing.T) {
 
-		path := fmt.Sprintf("api/5346c97857c84dcd93daf37fb88926a0/crudOps/%s", response[0].ID)
+		path := fmt.Sprintf("%s/%s", endpointPath, response[0].ID)
 		client := createClient(t, url, path, token, headers)
 
 		req.Name = "test2"
@@ -93,7 +117,7 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	})
 
 	t.Run("delete data", func(t *testing.T) {
-		path := fmt.Sprintf("api/5346c97857c84dcd93daf37fb88926a0/crudOps/%s", response[0].ID)
+		path := fmt.Sprintf("%s/%s", endpointPath, response[0].ID)
 		client := createClient(t, url, path, token, headers)
 
 		resp, err := client.Call(httpclient.DELETE, nil, nil, nil)
