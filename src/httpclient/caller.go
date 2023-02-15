@@ -10,32 +10,38 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
-// HttpCaller interface provides the definition of the caller method
-type HttpCaller interface {
-	// Call : executes http request
-	Call(method HttpMethod, headers map[string]string, query map[string]string, reqBody []byte) *http.Response
-	// CallWithContext : executes http request with context
-	CallWithContext(
-		method HttpMethod, headers map[string]string, query map[string]string, reqBody []byte,
-	) (*http.Response, error)
-	// RetryableCall executes Call function in a retryable manner
-	RetryableCall(
-		method HttpMethod, extraHeaders map[string]string, query map[string]string, reqBody []byte,
-	) (*http.Response, error)
-}
+const (
+	maxIdleConns        = 100
+	maxConnsPerHost     = 100
+	maxIdleConnsPerHost = 100
+)
 
 // Caller ...
 type Caller struct {
 	config     *Config
 	authHeader map[string]string
+	client     http.Client
 }
 
 // NewHTTPCaller create new http caller
 func NewHTTPCaller(config *Config) *Caller {
 	header := make(map[string]string)
-	return &Caller{config: config, authHeader: header}
+	// set up the transport layer
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = maxIdleConns
+	t.MaxConnsPerHost = maxConnsPerHost
+	t.MaxIdleConnsPerHost = maxIdleConnsPerHost
+
+	client := http.Client{
+		Timeout:   config.timeout * time.Second,
+		Transport: t,
+	}
+
+	return &Caller{client: client, config: config, authHeader: header}
+
 }
 
 func (c *Caller) WithAuth(authType cauth.IAuth) (*Caller, error) {
@@ -113,14 +119,8 @@ func (c *Caller) CallWithContext(
 	for k, v := range query {
 		q.Add(k, v)
 	}
-	// create http client
-	client := http.Client{}
-	// set the timeout from the config if its being set
-	if c.config.timeout != 0 {
-		client.Timeout = c.config.timeout
-	}
 
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 
 	return resp, err
 }
