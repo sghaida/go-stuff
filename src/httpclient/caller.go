@@ -5,62 +5,77 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sghaida/go-stuff/src/cauth"
 	"github.com/sghaida/go-stuff/src/retry"
 	"io"
 	"net/http"
-	"strings"
-	"time"
 )
 
+// TODO 3: update the retryable logic to include error codes to retry
 const (
 	maxIdleConns        = 100
 	maxConnsPerHost     = 100
 	maxIdleConnsPerHost = 100
 )
 
-// Caller ...
 type Caller struct {
-	config     *Config
-	authHeader map[string]string
-	client     http.Client
+	host    string
+	route   string
+	headers map[string]string
+	query   map[string]string
+	reqBody []byte
+	client  *Client
 }
 
-// NewHTTPCaller create new http caller
-func NewHTTPCaller(config *Config) *Caller {
-	header := make(map[string]string)
-	// set up the transport layer
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = maxIdleConns
-	t.MaxConnsPerHost = maxConnsPerHost
-	t.MaxIdleConnsPerHost = maxIdleConnsPerHost
-
-	client := http.Client{
-		Timeout:   config.timeout * time.Second,
-		Transport: t,
+// NewCaller creates HTTPCaller
+func NewCaller(client *Client, host, route string) *Caller {
+	return &Caller{
+		host:    host,
+		route:   route,
+		headers: make(map[string]string),
+		query:   make(map[string]string),
+		client:  client,
 	}
-
-	return &Caller{client: client, config: config, authHeader: header}
-
 }
 
-func (c *Caller) WithAuth(authType cauth.IAuth) (*Caller, error) {
-	// check if auth header is already being set
-	if len(c.authHeader) > 0 {
-		return c, errors.New("authentication is already being set")
+// WithHeaders add request headers
+func (c *Caller) WithHeaders(headers map[string]string) *Caller {
+	if len(headers) != 0 {
+		for k, v := range headers {
+			c.headers[k] = v
+		}
 	}
-	switch authData := authType.(type) {
-	case cauth.IBasicAuth:
-		return c.addBasicAuth(authData)
-	case cauth.IJwtAuth:
-		return c.addJwtToken(authData)
-	case cauth.IApiKey:
-		return c.addApiKey(authData)
-	case cauth.INoAuth:
-		return c, nil
-	default:
-		return nil, errors.New("unsupported auth type")
+	return c
+}
+
+// WithQueryParam add request query param
+func (c *Caller) WithQueryParam(params map[string]string) *Caller {
+	if len(params) != 0 {
+		for k, v := range params {
+			c.query[k] = v
+		}
 	}
+	return c
+}
+
+// WithRequestBody add requestBody
+func (c *Caller) WithRequestBody(reqBody []byte) *Caller {
+	if len(reqBody) != 0 {
+		c.reqBody = reqBody
+	}
+	return c
+}
+
+func (c *Caller) Build() (*Caller, error) {
+	if c.client == nil {
+		return nil, errors.New("client can't be nil")
+	}
+	if c.route == "" {
+		return nil, errors.New("http route can't be empty")
+	}
+	if c.host == "" {
+		return nil, errors.New("http host can't be empty")
+	}
+	return c, nil
 }
 
 // Call : do request http call with background context
@@ -76,42 +91,37 @@ func (c *Caller) Call(
 func (c *Caller) CallWithContext(
 	ctx context.Context, method HttpMethod, extraHeaders map[string]string, query map[string]string, reqBody []byte,
 ) (*http.Response, error) {
-	// remove trailing / character
-	host := c.config.host
-	path := c.config.route
-
-	if host == "" {
-		return nil, errors.New("http host can't be empty")
-	}
 
 	if method == "" {
 		return nil, errors.New("http method can't be empty")
 	}
-	// remove trailing slashes and spaces/
-	host = strings.TrimSpace(host)
-	host = strings.TrimSuffix(host, "/")
-	path = strings.TrimSpace(path)
-	path = strings.TrimSuffix(path, "/")
 
 	// read request body
 	body := io.NopCloser(bytes.NewReader(reqBody))
 
 	// create the http request
-	url := fmt.Sprintf("%s/%s", host, path)
+	url := fmt.Sprintf("%s/%s", c.host, c.route)
 	req, err := http.NewRequest(string(method), url, body)
 
 	req = req.WithContext(ctx)
 
 	// add the default headers  (from the config) if available
-	for key, value := range c.config.defaultHeaders {
+	for key, value := range c.client.config.defaultHeaders {
 		req.Header.Add(key, value)
 	}
 	// add extra headers passed by the request
 	for key, value := range extraHeaders {
 		req.Header.Add(key, value)
 	}
+	auth, err := c.client.getAuthHeader()
+	if err != nil {
+		// TODO wrap the error
+		return nil, errors.New("unable to extract auth header")
+	}
 	// add auth header
-	for key, value := range c.authHeader {
+	key, value := auth.GetAuthKeyValue()
+	// skip no-auth case
+	if key != "" && value != "" {
 		req.Header.Add(key, value)
 	}
 	// add query values
@@ -120,7 +130,7 @@ func (c *Caller) CallWithContext(
 		q.Add(k, v)
 	}
 
-	resp, err := c.client.Do(req)
+	resp, err := c.client.client.Do(req)
 
 	return resp, err
 }
@@ -130,7 +140,7 @@ func (c *Caller) RetryableCall(
 	method HttpMethod, extraHeaders map[string]string, query map[string]string, reqBody []byte,
 ) (*http.Response, error) {
 
-	retryable := retry.NewRetry(c.config.numOfRetries, retry.DefaultInitialDelay, retry.DefaultMaxDelay)
+	retryable := retry.NewRetry(c.client.config.numOfRetries, retry.DefaultInitialDelay, retry.DefaultMaxDelay)
 	toExecute := func() (interface{}, error) {
 		return c.Call(method, extraHeaders, query, reqBody)
 	}

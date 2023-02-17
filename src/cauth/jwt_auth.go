@@ -21,12 +21,13 @@ func (jwt *JwtAuth) GetAuthType() AuthType {
 	return AuthJwt
 }
 
-// GetAuthKey ...
-func (jwt *JwtAuth) GetAuthKey() (string, error) {
+// GetAuthData ...
+func (jwt *JwtAuth) GetAuthData() (AuthHeader, error) {
 	token := jwt.token
 	if token == "" {
-		return "", errors.New("token can't be empty")
+		return AuthHeader{}, errors.New("token can't be empty")
 	}
 	token = fmt.Sprintf("Bearer %s", jwt.token)
-	return token, nil
+
+	return AuthHeader{key: "Authorization", value: token}, nil
 }

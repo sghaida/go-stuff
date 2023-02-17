@@ -14,8 +14,24 @@ const (
 	AuthApiKey AuthType = "apikey"
 )
 
-type AuthKeyGetter interface {
-	GetAuthKey() (string, error)
+type AuthHeader struct {
+	key   string
+	value string
+}
+
+func NewAuthHeader(key string, value string) AuthHeader {
+	return AuthHeader{
+		key:   key,
+		value: value,
+	}
+}
+
+func (a AuthHeader) GetAuthKeyValue() (string, string) {
+	return a.key, a.value
+}
+
+type AuthDataGetter interface {
+	GetAuthData() (AuthHeader, error)
 }
 
 type IAuth interface {
@@ -24,17 +40,17 @@ type IAuth interface {
 
 type IBasicAuth interface {
 	IAuth
-	AuthKeyGetter
+	AuthDataGetter
 }
 
 type IJwtAuth interface {
 	IAuth
-	AuthKeyGetter
+	AuthDataGetter
 }
 
 type IApiKey interface {
 	IAuth
-	AuthKeyGetter
+	AuthDataGetter
 }
 
 type INoAuth interface {

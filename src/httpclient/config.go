@@ -3,14 +3,11 @@ package httpclient
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 )
 
 // Config holds the HttpCaller config
 type Config struct {
-	host           string
-	route          string
 	timeout        time.Duration
 	numOfRetries   int
 	jsonSchema     json.RawMessage
@@ -24,8 +21,6 @@ func newConfig(c *ConfigBuilder) *Config {
 
 // ConfigBuilder Build HttpCaller config
 type ConfigBuilder struct {
-	host           string
-	route          string
 	timeout        time.Duration
 	numOfRetries   int
 	jsonSchema     json.RawMessage
@@ -34,12 +29,6 @@ type ConfigBuilder struct {
 
 // Build builds HttpCaller Config
 func (c *ConfigBuilder) Build() (*Config, error) {
-	if c.host == "" {
-		return nil, errors.New("host can't be empty")
-	}
-	if c.route == "" {
-		return nil, errors.New("route can't be empty")
-	}
 	if c.numOfRetries < 0 {
 		return nil, errors.New("retries can't be negative")
 	}
@@ -61,26 +50,6 @@ func (c *ConfigBuilder) Build() (*Config, error) {
 // NewConfig create new HttpCaller config
 func NewConfig() *ConfigBuilder {
 	return &ConfigBuilder{}
-}
-
-// WithHost add url
-func (c *ConfigBuilder) WithHost(host string) *ConfigBuilder {
-	// remove trailing slashes and spaces/
-	host = strings.TrimSpace(host)
-	host = strings.TrimSuffix(host, "/")
-
-	c.host = host
-	return c
-}
-
-// WithRoute add path
-func (c *ConfigBuilder) WithRoute(route string) *ConfigBuilder {
-	// remove trailing slashes and spaces/
-	route = strings.TrimSpace(route)
-	route = strings.TrimSuffix(route, "/")
-
-	c.route = route
-	return c
 }
 
 // WithTimeout add timeout

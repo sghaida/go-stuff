@@ -145,10 +145,9 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	})
 }
 
-func createClient(t *testing.T, url string, path string, token string, headers map[string]string) *httpclient.Caller {
+func createClient(t *testing.T, host string, route string, token string, headers map[string]string) *httpclient.Caller {
+
 	config, err := httpclient.NewConfig().
-		WithHost(url).
-		WithRoute(path).
 		WithTimeout(1 * time.Second).
 		WithHeaders(headers).
 		Build()
@@ -156,9 +155,12 @@ func createClient(t *testing.T, url string, path string, token string, headers m
 		assert.Failf(t, "expected config creation to succeed, got error", err.Error())
 	}
 	auth := cauth.NewJWTAuth(token)
-	client, err := httpclient.NewHTTPCaller(config).WithAuth(auth)
+	client := http.DefaultClient
+
+	c, err := httpclient.NewClient(config, client, auth)
 	if err != nil {
 		assert.Failf(t, "expected to create client, recieved %s", err.Error())
 	}
-	return client
+	caller := httpclient.NewCaller(c, host, route)
+	return caller
 }

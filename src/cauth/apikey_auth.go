@@ -17,10 +17,10 @@ func (k *ApiKey) GetAuthType() AuthType {
 	return AuthApiKey
 }
 
-// GetAuthKey ...
-func (k *ApiKey) GetAuthKey() (string, error) {
+// GetAuthData ...
+func (k *ApiKey) GetAuthData() (AuthHeader, error) {
 	if k.key == "" {
-		return "", errors.New("key should not be empty")
+		return AuthHeader{}, errors.New("key should not be empty")
 	}
-	return k.key, nil
+	return AuthHeader{key: "x-api-key", value: k.key}, nil
 }

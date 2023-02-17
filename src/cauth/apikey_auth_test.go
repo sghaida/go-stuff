@@ -31,7 +31,7 @@ func TestApiKey_GetAuthKey(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			apikey := NewAPIKey(tc.key)
-			key, err := apikey.GetAuthKey()
+			key, err := apikey.GetAuthData()
 			if tc.expectsError {
 				assert.Error(t, err)
 				assert.Equal(t, key, "")

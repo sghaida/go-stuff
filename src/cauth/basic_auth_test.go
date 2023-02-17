@@ -37,7 +37,7 @@ func TestBasicAuth_GetAuthKey(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			basicAuth := NewBasicAuth(tc.username, tc.password)
-			key, err := basicAuth.GetAuthKey()
+			key, err := basicAuth.GetAuthData()
 			if tc.expectsError {
 				assert.Error(t, err)
 				assert.Equal(t, key, "")

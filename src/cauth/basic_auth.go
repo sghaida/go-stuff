@@ -25,12 +25,13 @@ func (b *BasicAuth) GetAuthType() AuthType {
 	return AuthBasic
 }
 
-// GetAuthKey ...
-func (b *BasicAuth) GetAuthKey() (string, error) {
+// GetAuthData ...
+func (b *BasicAuth) GetAuthData() (AuthHeader, error) {
 	if b.username == "" || b.password == "" {
-		return "", errors.New("username and password can't be empty")
+		return AuthHeader{}, errors.New("username and password can't be empty")
 	}
 	auth := fmt.Sprintf("%s:%s", b.username, b.password)
 	encodedAuthStr := base64.StdEncoding.EncodeToString([]byte(auth))
-	return encodedAuthStr, nil
+
+	return AuthHeader{key: "Authorization", value: fmt.Sprintf("Basic %s", encodedAuthStr)}, nil
 }

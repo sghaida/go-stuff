@@ -2,7 +2,7 @@ package httpclient
 
 import "net/http"
 
-// HttpCaller interface provides the definition of the caller method
+// HttpCaller interface provides the definition of the Client method
 type HttpCaller interface {
 	// Call : executes http request
 	Call(method HttpMethod, headers map[string]string, query map[string]string, reqBody []byte) *http.Response

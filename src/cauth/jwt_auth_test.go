@@ -31,7 +31,7 @@ func TestJwtAuth_GetAuthKey(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			jwtAuth := NewJWTAuth(tc.jwt)
-			key, err := jwtAuth.GetAuthKey()
+			key, err := jwtAuth.GetAuthData()
 			if tc.expectsError {
 				assert.Error(t, err)
 				assert.Equal(t, key, "")
