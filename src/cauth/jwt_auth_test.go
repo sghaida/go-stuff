@@ -31,14 +31,14 @@ func TestJwtAuth_GetAuthKey(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			jwtAuth := NewJWTAuth(tc.jwt)
-			key, err := jwtAuth.GetAuthData()
+			authData, err := jwtAuth.GetAuthData()
 			if tc.expectsError {
 				assert.Error(t, err)
-				assert.Equal(t, key, "")
+				assert.Equal(t, authData.value, "")
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, "Bearer "+tc.jwt, key)
+			assert.Equal(t, "Bearer "+tc.jwt, authData.value)
 		})
 	}
 }

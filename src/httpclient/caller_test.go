@@ -53,7 +53,7 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 		"Accept":       `application/json`,
 		"Content-Type": `application/json`,
 	}
-	client := createClient(t, url, endpointPath, token, headers)
+
 	type reqPayload struct {
 		ID   string `json:"_id,omitempty"`
 		Name string `json:"name"`
@@ -68,8 +68,8 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	payload, _ := json.Marshal(req)
 
 	t.Run("post data", func(t *testing.T) {
-
-		resp, err := client.Call(httpclient.POST, nil, nil, payload)
+		client := createClient(t, url, endpointPath, token, headers, httpclient.POST, payload)
+		resp, err := client.Call()
 		if err != nil {
 			assert.Failf(t, "expected to call successfully, recieved an error %s", err.Error())
 		}
@@ -85,8 +85,8 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	})
 
 	t.Run("get data", func(t *testing.T) {
-
-		resp, err := client.Call(httpclient.GET, nil, nil, nil)
+		client := createClient(t, url, endpointPath, token, headers, httpclient.GET, nil)
+		resp, err := client.Call()
 		if err != nil {
 			assert.Failf(t, "expected to call successfully, recieved an error %s", err.Error())
 		}
@@ -107,12 +107,13 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	t.Run("put data", func(t *testing.T) {
 
 		path := fmt.Sprintf("%s/%s", endpointPath, response[0].ID)
-		client := createClient(t, url, path, token, headers)
 
 		req.Name = "test2"
 		reqBody, _ := json.Marshal(req)
 
-		resp, err := client.Call(httpclient.PUT, nil, nil, reqBody)
+		client := createClient(t, url, path, token, headers, httpclient.PUT, reqBody)
+
+		resp, err := client.Call()
 		if err != nil {
 			assert.Failf(t, "expected to call successfully, recieved an error %s", err.Error())
 		}
@@ -128,9 +129,9 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 
 	t.Run("delete data", func(t *testing.T) {
 		path := fmt.Sprintf("%s/%s", endpointPath, response[0].ID)
-		client := createClient(t, url, path, token, headers)
+		client := createClient(t, url, path, token, headers, httpclient.DELETE, nil)
 
-		resp, err := client.Call(httpclient.DELETE, nil, nil, nil)
+		resp, err := client.Call()
 		if err != nil {
 			assert.Failf(t, "expected to call successfully, recieved an error %s", err.Error())
 		}
@@ -145,7 +146,9 @@ func TestCaller_CallWithTimeout(t *testing.T) {
 	})
 }
 
-func createClient(t *testing.T, host string, route string, token string, headers map[string]string) *httpclient.Caller {
+func createClient(
+	t *testing.T, host string, route string, token string, headers map[string]string, method httpclient.HttpMethod, body []byte,
+) *httpclient.Caller {
 
 	config, err := httpclient.NewConfig().
 		WithTimeout(1 * time.Second).
@@ -161,6 +164,11 @@ func createClient(t *testing.T, host string, route string, token string, headers
 	if err != nil {
 		assert.Failf(t, "expected to create client, recieved %s", err.Error())
 	}
-	caller := httpclient.NewCaller(c, host, route)
+
+	caller, err := httpclient.NewCallerBuilder(c, host, route, method).WithHeaders(
+		map[string]string{"X-ClIENT-ID": "123"},
+	).WithRequestBody(body).Build()
+	assert.NoError(t, err)
+
 	return caller
 }
