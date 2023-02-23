@@ -2,7 +2,7 @@ package httpclient
 
 import "errors"
 
-// CallerBuilder ...
+// CallerBuilder builds the Caller
 type CallerBuilder struct {
 	host    string
 	route   string

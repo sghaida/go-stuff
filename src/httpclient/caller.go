@@ -17,6 +17,7 @@ const (
 	maxIdleConnsPerHost = 100
 )
 
+// Caller built using CallerBuilder
 type Caller struct {
 	host    string
 	route   string
