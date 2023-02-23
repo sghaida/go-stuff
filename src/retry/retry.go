@@ -70,7 +70,7 @@ func (r *Retry) RunWithContext(
 		case <-t.C:
 			// nothing to be done as the timer is killed
 		case <-ctx.Done():
-			// context cancelled, kill the timer if it not killed, and return the last error
+			// context cancelled, kill the timer if it is not killed, and return the last error
 			if !t.Stop() {
 				<-t.C
 			}
