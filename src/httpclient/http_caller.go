@@ -8,7 +8,7 @@ import (
 // HttpCaller interface provides the definition of the Client method
 type HttpCaller interface {
 	// Call : executes http request
-	Call() *http.Response
+	Call() (*http.Response, error)
 	// CallWithContext : executes http request with context
 	CallWithContext(ctx context.Context) (*http.Response, error)
 	// RetryableCall executes Call function in a retryable manner

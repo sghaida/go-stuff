@@ -17,7 +17,7 @@ type Client struct {
 func NewClient(config *Config, client *http.Client, authType cauth.IAuth) (*Client, error) {
 	// set up the transport layer
 	// allow 100 concurrent connection in the connection pool
-	t := http.DefaultTransport.(*http.Transport).Clone()
+	t := client.Transport.(*http.Transport).Clone()
 	t.MaxIdleConns = maxIdleConns
 	t.MaxConnsPerHost = maxConnsPerHost
 	t.MaxIdleConnsPerHost = maxIdleConnsPerHost
