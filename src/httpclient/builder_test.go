@@ -122,7 +122,7 @@ func TestNewCallerBuilder(t *testing.T) {
 	for _, tc := range tt {
 
 		config, _ := tc.configBuilder.Build()
-		client, _ := NewClient(config, http.DefaultClient, &cauth.NoAuth{})
+		client, _ := NewClient(config, http.DefaultClient, &cauth.NoAuth)
 
 		t.Run(tc.name, func(t *testing.T) {
 			var req *CallerBuilder

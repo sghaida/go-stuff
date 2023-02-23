@@ -35,11 +35,7 @@ func NewClient(config *Config, client *http.Client, authType cauth.IAuth) (*Clie
 
 func (c *Client) getAuthHeader() (cauth.AuthHeader, error) {
 	switch authData := c.authType.(type) {
-	case cauth.IBasicAuth:
-		return authData.GetAuthData()
-	case cauth.IJwtAuth:
-		return authData.GetAuthData()
-	case cauth.IApiKey:
+	case cauth.ISomeAuth:
 		return authData.GetAuthData()
 	case cauth.INoAuth:
 		return cauth.NewAuthHeader("", ""), nil

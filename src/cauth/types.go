@@ -14,6 +14,8 @@ const (
 	AuthApiKey AuthType = "apikey"
 )
 
+var NoAuth = noAuth{}
+
 type AuthHeader struct {
 	key   string
 	value string
@@ -38,27 +40,19 @@ type IAuth interface {
 	GetAuthType() AuthType
 }
 
-type IBasicAuth interface {
+// ISomeAuth has some auth implementation
+type ISomeAuth interface {
 	IAuth
 	AuthDataGetter
 }
 
-type IJwtAuth interface {
-	IAuth
-	AuthDataGetter
-}
-
-type IApiKey interface {
-	IAuth
-	AuthDataGetter
-}
-
+// INoAuth has no auth implementation
 type INoAuth interface {
 	IAuth
 }
 
-type NoAuth struct{}
+type noAuth struct{}
 
-func (n *NoAuth) GetAuthType() AuthType {
+func (n noAuth) GetAuthType() AuthType {
 	return None
 }
