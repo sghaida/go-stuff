@@ -81,7 +81,7 @@ func InitializeEventLoop() *Queue {
 	}
 }
 
-// emmit event into the queue, uses channel for synchronization
+// Emmit : emmit event into the queue, uses channel for synchronization
 func (q *Queue) Emmit(e Event, f func() EventReply) EventID {
 	eventID := uuid.New().String()
 	e.eventID = eventID
@@ -115,7 +115,7 @@ func (q *Queue) pop() {
 	return
 }
 
-// push push event into the queue to be executed
+// push : push event into the queue to be executed
 func (q *Queue) push(event baseEvent) {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
@@ -124,7 +124,7 @@ func (q *Queue) push(event baseEvent) {
 	q.actions = append(q.actions, event.f)
 }
 
-// start starts the event loop and executes or emmit some events to be executed
+// Start : starts the event loop and executes or emmit some events to be executed
 func (q *Queue) Start() {
 	var internal func()
 	internal = func() {
